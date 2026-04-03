@@ -1,130 +1,604 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Гра: Пари німецьких дієслів</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f0f8ff; margin: 20px; }
-        h1 { color: #333; }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 600px; margin: 0 auto; }
-        .card { height: 80px; border: 2px solid #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; background: white; }
-        .card:hover { background: #e6f3ff; }
-        .card.flipped { background: #fff; transform: rotateY(180deg); }
-        .card.matched { background: #90ee90; border-color: #32cd32; cursor: default; }
-        .card.wrong { background: #ff6b6b; border-color: #ff0000; }
-        .stats { margin: 20px; font-size: 18px; }
-        button { padding: 10px 20px; font-size: 16px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #45a049; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>German Match Progression</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #eef6ff, #f8fbff);
+      color: #223;
+    }
+
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 32px;
+      color: #1e3a5f;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      text-align: center;
+      color: #5b6b7f;
+      font-size: 16px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .left-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    label {
+      font-weight: 700;
+      color: #30445c;
+    }
+
+    select,
+    button {
+      border: 1px solid #cdd9e5;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-btn {
+      background: #2d7ff9;
+      color: white;
+      border-color: #2d7ff9;
+    }
+
+    .secondary-btn {
+      background: #f3f7fb;
+      color: #24415f;
+    }
+
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stat-box {
+      background: #f4f8fc;
+      border: 1px solid #dce7f2;
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-width: 110px;
+      text-align: center;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 12px;
+      color: #6a7b8f;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f3550;
+    }
+
+    .info-line {
+      text-align: center;
+      margin: 12px 0 10px;
+      color: #5b6b7f;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .level-line {
+      text-align: center;
+      margin-bottom: 18px;
+      color: #24415f;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      margin: 0 auto;
+    }
+
+    .card,
+    .empty-card {
+      min-height: 92px;
+      width: 100%;
+      max-width: 150px;
+      border-width: 2px;
+      border-radius: 16px;
+      padding: 14px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.25;
+      word-break: break-word;
+      transition: 0.2s ease;
+    }
+
+    .card {
+      border-style: solid;
+      border-color: #d7e3f4;
+      background: #fff;
+      color: #203246;
+      cursor: pointer;
+    }
+
+    .card:hover:not(:disabled) {
+      background: #eef6ff;
+    }
+
+    .card.de-card {
+      border-style: dashed;
+      border-color: #7aa7e8;
+      background: #fcfdff;
+    }
+
+    .card.uk-card {
+      border-style: solid;
+      border-color: #d7e3f4;
+      background: #ffffff;
+    }
+
+    .card.selected {
+      background: #dbeafe;
+      border-color: #60a5fa;
+      border-style: solid;
+    }
+
+    .card.matched {
+      background: #bbf7d0;
+      border-color: #22c55e;
+      color: #14532d;
+      border-style: solid;
+    }
+
+    .card.wrong {
+      background: #fecaca;
+      border-color: #ef4444;
+      color: #7f1d1d;
+      border-style: solid;
+    }
+
+    .card:disabled {
+      cursor: default;
+    }
+
+    .empty-card {
+      border: 2px dashed #dbe4ee;
+      background: #f8fbff;
+      color: #9aabbd;
+      user-select: none;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      text-align: center;
+      color: #6b7a8f;
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        justify-content: center;
+      }
+
+      .card,
+      .empty-card {
+        min-height: 78px;
+        max-width: 130px;
+        font-size: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Пари: Німецькі дієслова та переклади (A1)</h1>
-    <div class="stats">
-        <span>Спроби: <span id="moves">0</span></span> | 
-        <span>Пари знайдено: <span id="matches">0</span>/8</span>
+  <div class="app">
+    <h1>German Match Progression</h1>
+    <p class="subtitle">Натисни один раз на слово і один раз на його переклад.</p>
+
+    <div class="topbar">
+      <div class="left-controls">
+        <label for="levelSelect">Рівень слів:</label>
+        <select id="levelSelect">
+          <option value="A1">A1</option>
+          <option value="A2">A2</option>
+          <option value="B1">B1</option>
+          <option value="ALL">ALL</option>
+        </select>
+
+        <button class="primary-btn" id="newGameBtn">New game</button>
+        <button class="secondary-btn" id="reshuffleBtn">Shuffle</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <span class="stat-label">Спроби</span>
+          <span class="stat-value" id="moves">0</span>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-label">Пари</span>
+          <span class="stat-value"><span id="matches">0</span>/<span id="targetPairs">3</span></span>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-label">Слова в рівні</span>
+          <span class="stat-value" id="levelCount">0</span>
+        </div>
+      </div>
     </div>
-    <div class="grid" id="grid"></div>
-    <br>
-    <button onclick="resetGame()">Нова гра</button>
 
-    <script>
-        const pairsA1 = [
-            { de: 'sein', uk: 'бути' },
-            { de: 'haben', uk: 'мати' },
-            { de: 'essen', uk: 'їсти' },
-            { de: 'trinken', uk: 'пити' },
-            { de: 'gehen', uk: 'йти' },
-            { de: 'kommen', uk: 'приходити' },
-            { de: 'sehen', uk: 'бачити' },
-            { de: 'schlafen', uk: 'спати' }
-        ];
+    <div class="info-line" id="infoLine">Завантаження словника...</div>
+    <div class="level-line" id="gridLevelLine">Сітка: 2 x 3</div>
 
-        let cards = [];
-        let flipped = [];
-        let moves = 0;
-        let matches = 0;
+    <div class="grid" id="gameBoard"></div>
 
-        function initGame() {
-            cards = [];
-            flipped = [];
-            moves = 0;
-            matches = 0;
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
+    <div class="footer-note">
+      Прогресія полів: 2x3 → 3x3 → 3x4 → 4x4 → 5x4 → 5x5
+    </div>
+  </div>
 
-            // Створюємо 16 карт (8 пар: дієслова DE + переклади UK)
-            const allCards = [...pairsA1, ...pairsA1].sort(() => Math.random() - 0.5);
-            allCards.forEach((pair, index) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.value = pair.de + '|' + pair.uk;
-                card.dataset.side = index % 2 === 0 ? 'de' : 'uk';  // Чергування сторін
-                card.textContent = '?';
-                card.onclick = flipCard;
-                grid.appendChild(card);
-                cards.push(card);
-            });
-            updateStats();
+  <script src="dictionary.js"></script>
+  <script>
+    const board = document.getElementById("gameBoard");
+    const movesEl = document.getElementById("moves");
+    const matchesEl = document.getElementById("matches");
+    const targetPairsEl = document.getElementById("targetPairs");
+    const levelCountEl = document.getElementById("levelCount");
+    const infoLineEl = document.getElementById("infoLine");
+    const gridLevelLineEl = document.getElementById("gridLevelLine");
+    const levelSelect = document.getElementById("levelSelect");
+    const newGameBtn = document.getElementById("newGameBtn");
+    const reshuffleBtn = document.getElementById("reshuffleBtn");
+
+    const GRID_STAGES = [
+      { cols: 2, rows: 3, pairs: 3, emptySlots: 0 },
+      { cols: 3, rows: 3, pairs: 4, emptySlots: 1 },
+      { cols: 3, rows: 4, pairs: 6, emptySlots: 0 },
+      { cols: 4, rows: 4, pairs: 8, emptySlots: 0 },
+      { cols: 5, rows: 4, pairs: 10, emptySlots: 0 },
+      { cols: 5, rows: 5, pairs: 12, emptySlots: 1 }
+    ];
+
+    let cards = [];
+    let selectedCards = [];
+    let moves = 0;
+    let matches = 0;
+    let lockBoard = false;
+    let currentLevel = "A1";
+    let currentStageIndex = 0;
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function getCurrentStage() {
+      return GRID_STAGES[currentStageIndex];
+    }
+
+    function updateGridLayout() {
+      const stage = getCurrentStage();
+      board.style.gridTemplateColumns = `repeat(${stage.cols}, minmax(110px, 150px))`;
+      board.style.maxWidth = `${stage.cols * 162}px`;
+      gridLevelLineEl.textContent = `Сітка: ${stage.cols} x ${stage.rows}`;
+      targetPairsEl.textContent = stage.pairs;
+    }
+
+    function getFilteredDictionary(level) {
+      if (!Array.isArray(dictionary)) return [];
+      if (level === "ALL") return dictionary;
+      return dictionary.filter(item => item.level === level);
+    }
+
+    function normalizeDictionary(items) {
+      const seen = new Set();
+      return items.filter(item => {
+        if (!item.de || !item.uk || !item.level) return false;
+        const key = `${item.level}__${item.de}__${item.uk}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function getRandomPairs(level, count) {
+      const filtered = normalizeDictionary(getFilteredDictionary(level));
+      levelCountEl.textContent = filtered.length;
+
+      if (filtered.length < count) {
+        infoLineEl.textContent = `Недостатньо слів для рівня ${level}. Потрібно щонайменше ${count} пар.`;
+        return [];
+      }
+
+      return shuffle(filtered).slice(0, count);
+    }
+
+    function buildCardsFromPairs(pairs) {
+      const result = [];
+
+      pairs.forEach((pair, index) => {
+        result.push({
+          id: `${pair.level}-${index}-de`,
+          pairId: `${pair.level}-${index}`,
+          text: pair.de,
+          type: "de",
+          matched: false
+        });
+
+        result.push({
+          id: `${pair.level}-${index}-uk`,
+          pairId: `${pair.level}-${index}`,
+          text: pair.uk,
+          type: "uk",
+          matched: false
+        });
+      });
+
+      return shuffle(result);
+    }
+
+    function updateStats() {
+      movesEl.textContent = moves;
+      matchesEl.textContent = matches;
+    }
+
+    function createCardElement(card, index) {
+      const button = document.createElement("button");
+      button.className = "card";
+      button.textContent = card.text;
+      button.dataset.index = index;
+
+      if (card.type === "de") {
+        button.classList.add("de-card");
+      } else {
+        button.classList.add("uk-card");
+      }
+
+      button.addEventListener("click", () => handleCardClick(index));
+      return button;
+    }
+
+    function createEmptySlot() {
+      const div = document.createElement("div");
+      div.className = "empty-card";
+      div.textContent = "";
+      return div;
+    }
+
+    function renderBoard() {
+      board.innerHTML = "";
+      updateGridLayout();
+
+      cards.forEach((card, index) => {
+        const cardEl = createCardElement(card, index);
+
+        if (card.matched) {
+          cardEl.classList.add("matched");
+          cardEl.disabled = true;
         }
 
-        function flipCard(e) {
-            const card = e.target;
-            if (flipped.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
-                card.classList.add('flipped');
-                card.textContent = card.dataset.side === 'de' ? 
-                    cards.find(c => c.dataset.value === card.dataset.value).dataset.value.split('|')[0] :
-                    cards.find(c => c.dataset.value === card.dataset.value).dataset.value.split('|')[1];
-                flipped.push(card);
+        board.appendChild(cardEl);
+      });
 
-                if (flipped.length === 2) {
-                    moves++;
-                    updateStats();
-                    setTimeout(checkMatch, 800);
-                }
-            }
+      const stage = getCurrentStage();
+      for (let i = 0; i < stage.emptySlots; i++) {
+        board.appendChild(createEmptySlot());
+      }
+
+      updateStats();
+    }
+
+    function clearTempState(index) {
+      const el = board.children[index];
+      if (!el || cards[index].matched) return;
+      el.classList.remove("selected", "wrong");
+    }
+
+    function markMatched(firstIndex, secondIndex) {
+      cards[firstIndex].matched = true;
+      cards[secondIndex].matched = true;
+
+      const firstEl = board.children[firstIndex];
+      const secondEl = board.children[secondIndex];
+
+      firstEl.classList.remove("selected");
+      secondEl.classList.remove("selected");
+
+      firstEl.classList.add("matched");
+      secondEl.classList.add("matched");
+
+      firstEl.disabled = true;
+      secondEl.disabled = true;
+    }
+
+    function markWrong(firstIndex, secondIndex) {
+      const firstEl = board.children[firstIndex];
+      const secondEl = board.children[secondIndex];
+
+      firstEl.classList.remove("selected");
+      secondEl.classList.remove("selected");
+
+      firstEl.classList.add("wrong");
+      secondEl.classList.add("wrong");
+    }
+
+    function handleCardClick(index) {
+      if (lockBoard) return;
+      if (cards[index].matched) return;
+      if (selectedCards.some(item => item.index === index)) return;
+      if (selectedCards.length === 2) return;
+
+      const cardEl = board.children[index];
+      cardEl.classList.add("selected");
+
+      selectedCards.push({
+        index,
+        pairId: cards[index].pairId,
+        type: cards[index].type
+      });
+
+      if (selectedCards.length === 2) {
+        moves += 1;
+        updateStats();
+        checkSelectedPair();
+      }
+    }
+
+    function goToNextStage() {
+      if (currentStageIndex < GRID_STAGES.length - 1) {
+        currentStageIndex += 1;
+      } else {
+        currentStageIndex = 0;
+      }
+      startGame(currentLevel, currentStageIndex);
+    }
+
+    function checkSelectedPair() {
+      lockBoard = true;
+
+      const [first, second] = selectedCards;
+      const isMatch =
+        first.pairId === second.pairId &&
+        first.type !== second.type;
+
+      if (isMatch) {
+        markMatched(first.index, second.index);
+        matches += 1;
+        updateStats();
+        selectedCards = [];
+        lockBoard = false;
+
+        if (matches === getCurrentStage().pairs) {
+          lockBoard = true;
+          const stage = getCurrentStage();
+          infoLineEl.textContent = `Готово! Рівень ${stage.cols}x${stage.rows} пройдено. Завантажую наступне поле...`;
+
+          setTimeout(() => {
+            goToNextStage();
+          }, 1200);
         }
+      } else {
+        markWrong(first.index, second.index);
 
-        function checkMatch() {
-            const [card1, card2] = flipped;
-            const val1 = card1.dataset.value.split('|');
-            const val2 = card2.dataset.value.split('|');
+        setTimeout(() => {
+          clearTempState(first.index);
+          clearTempState(second.index);
+          selectedCards = [];
+          lockBoard = false;
+        }, 700);
+      }
+    }
 
-            if ((val1[0] === val2[0] && val1[1] === val2[1]) || (val1[0] === val2[1] && val1[1] === val2[0])) {
-                // Правильна пара (DE з UK)
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                matches++;
-                updateStats();
-                if (matches === 8) alert('Вітаю! Усі пари знайдено!');
-            } else {
-                // Неправильно - червоний, потім назад
-                card1.classList.add('wrong');
-                card2.classList.add('wrong');
-                setTimeout(() => {
-                    card1.classList.remove('flipped', 'wrong');
-                    card2.classList.remove('flipped', 'wrong');
-                    card1.textContent = '?';
-                    card2.textContent = '?';
-                }, 1000);
-            }
-            flipped = [];
-        }
+    function startGame(level = "A1", stageIndex = 0) {
+      currentLevel = level;
+      currentStageIndex = stageIndex;
+      selectedCards = [];
+      moves = 0;
+      matches = 0;
+      lockBoard = false;
 
-        function updateStats() {
-            document.getElementById('moves').textContent = moves;
-            document.getElementById('matches').textContent = matches;
-        }
+      const stage = getCurrentStage();
+      const pairs = getRandomPairs(level, stage.pairs);
 
-        function resetGame() {
-            cards.forEach(card => {
-                card.classList.remove('flipped', 'matched', 'wrong');
-                card.textContent = '?';
-            });
-            initGame();
-        }
+      if (pairs.length < stage.pairs) {
+        cards = [];
+        renderBoard();
+        return;
+      }
 
-        initGame();
-    </script>
+      cards = buildCardsFromPairs(pairs);
+      infoLineEl.textContent = `Рівень слів ${level}. Поле ${stage.cols}x${stage.rows}. Пари: ${stage.pairs}.`;
+      renderBoard();
+    }
+
+    function ensureDictionaryLoaded() {
+      if (!Array.isArray(dictionary)) {
+        infoLineEl.textContent = "Помилка: файл dictionary.js не знайдено або масив dictionary недоступний.";
+        return false;
+      }
+      return true;
+    }
+
+    levelSelect.addEventListener("change", () => {
+      if (!ensureDictionaryLoaded()) return;
+      startGame(levelSelect.value, 0);
+    });
+
+    newGameBtn.addEventListener("click", () => {
+      if (!ensureDictionaryLoaded()) return;
+      startGame(levelSelect.value, 0);
+    });
+
+    reshuffleBtn.addEventListener("click", () => {
+      if (!ensureDictionaryLoaded()) return;
+      startGame(currentLevel, currentStageIndex);
+    });
+
+    if (ensureDictionaryLoaded()) {
+      startGame("A1", 0);
+    }
+  </script>
 </body>
 </html>
