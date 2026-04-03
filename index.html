@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра: Пари німецьких дієслів</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f8ff; margin: 20px; }
+        h1 { color: #333; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 600px; margin: 0 auto; }
+        .card { height: 80px; border: 2px solid #ddd; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; background: white; }
+        .card:hover { background: #e6f3ff; }
+        .card.flipped { background: #fff; transform: rotateY(180deg); }
+        .card.matched { background: #90ee90; border-color: #32cd32; cursor: default; }
+        .card.wrong { background: #ff6b6b; border-color: #ff0000; }
+        .stats { margin: 20px; font-size: 18px; }
+        button { padding: 10px 20px; font-size: 16px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Пари: Німецькі дієслова та переклади (A1)</h1>
+    <div class="stats">
+        <span>Спроби: <span id="moves">0</span></span> | 
+        <span>Пари знайдено: <span id="matches">0</span>/8</span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <br>
+    <button onclick="resetGame()">Нова гра</button>
+
+    <script>
+        const pairsA1 = [
+            { de: 'sein', uk: 'бути' },
+            { de: 'haben', uk: 'мати' },
+            { de: 'essen', uk: 'їсти' },
+            { de: 'trinken', uk: 'пити' },
+            { de: 'gehen', uk: 'йти' },
+            { de: 'kommen', uk: 'приходити' },
+            { de: 'sehen', uk: 'бачити' },
+            { de: 'schlafen', uk: 'спати' }
+        ];
+
+        let cards = [];
+        let flipped = [];
+        let moves = 0;
+        let matches = 0;
+
+        function initGame() {
+            cards = [];
+            flipped = [];
+            moves = 0;
+            matches = 0;
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            // Створюємо 16 карт (8 пар: дієслова DE + переклади UK)
+            const allCards = [...pairsA1, ...pairsA1].sort(() => Math.random() - 0.5);
+            allCards.forEach((pair, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.value = pair.de + '|' + pair.uk;
+                card.dataset.side = index % 2 === 0 ? 'de' : 'uk';  // Чергування сторін
+                card.textContent = '?';
+                card.onclick = flipCard;
+                grid.appendChild(card);
+                cards.push(card);
+            });
+            updateStats();
+        }
+
+        function flipCard(e) {
+            const card = e.target;
+            if (flipped.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                card.classList.add('flipped');
+                card.textContent = card.dataset.side === 'de' ? 
+                    cards.find(c => c.dataset.value === card.dataset.value).dataset.value.split('|')[0] :
+                    cards.find(c => c.dataset.value === card.dataset.value).dataset.value.split('|')[1];
+                flipped.push(card);
+
+                if (flipped.length === 2) {
+                    moves++;
+                    updateStats();
+                    setTimeout(checkMatch, 800);
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flipped;
+            const val1 = card1.dataset.value.split('|');
+            const val2 = card2.dataset.value.split('|');
+
+            if ((val1[0] === val2[0] && val1[1] === val2[1]) || (val1[0] === val2[1] && val1[1] === val2[0])) {
+                // Правильна пара (DE з UK)
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matches++;
+                updateStats();
+                if (matches === 8) alert('Вітаю! Усі пари знайдено!');
+            } else {
+                // Неправильно - червоний, потім назад
+                card1.classList.add('wrong');
+                card2.classList.add('wrong');
+                setTimeout(() => {
+                    card1.classList.remove('flipped', 'wrong');
+                    card2.classList.remove('flipped', 'wrong');
+                    card1.textContent = '?';
+                    card2.textContent = '?';
+                }, 1000);
+            }
+            flipped = [];
+        }
+
+        function updateStats() {
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('matches').textContent = matches;
+        }
+
+        function resetGame() {
+            cards.forEach(card => {
+                card.classList.remove('flipped', 'matched', 'wrong');
+                card.textContent = '?';
+            });
+            initGame();
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
